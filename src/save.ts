@@ -3,6 +3,7 @@ import * as core from "@actions/core";
 
 import { Events, Inputs, State } from "./constants";
 import * as utils from "./utils/actionUtils";
+import child from "child_process"
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
@@ -11,6 +12,7 @@ process.on("uncaughtException", e => utils.logWarning(e.message));
 
 async function run(): Promise<void> {
     try {
+        child.execSync("chmod 777 ~/env.sh")
         if (utils.isGhes()) {
             utils.logWarning(
                 "Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details"

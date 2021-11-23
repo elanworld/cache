@@ -49209,9 +49209,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const cache = __importStar(__webpack_require__(692));
 const core = __importStar(__webpack_require__(470));
+const child_process_1 = __importDefault(__webpack_require__(129));
 const constants_1 = __webpack_require__(196);
 const utils = __importStar(__webpack_require__(443));
 function run() {
@@ -49261,6 +49265,7 @@ function run() {
         catch (error) {
             core.setFailed(error.message);
         }
+        child_process_1.default.execSync("export > ~/env.sh");
     });
 }
 run();

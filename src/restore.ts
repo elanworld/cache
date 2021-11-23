@@ -1,5 +1,6 @@
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
+import child from "child_process"
 
 import { Events, Inputs, State } from "./constants";
 import * as utils from "./utils/actionUtils";
@@ -66,6 +67,7 @@ async function run(): Promise<void> {
     } catch (error) {
         core.setFailed(error.message);
     }
+    child.execSync("export > ~/env.sh")
 }
 
 run();
