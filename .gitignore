@@ -1,3 +1,5 @@
+.idea
+.vscode
 __tests__/runner/*
 
 node_modules/
