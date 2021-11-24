@@ -25,7 +25,8 @@ async function run(): Promise<void> {
             return;
         }
 
-        const primaryKey = core.getInput(Inputs.Key, { required: true });
+        let primaryKey = core.getInput(Inputs.Key, { required: true });
+        primaryKey = process.argv[2] || primaryKey;
         core.saveState(State.CachePrimaryKey, primaryKey);
 
         const restoreKeys = utils.getInputAsArray(Inputs.RestoreKeys);
