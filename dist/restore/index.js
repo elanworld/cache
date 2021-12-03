@@ -65871,129 +65871,7 @@ function write(cert, options) {
 
 
 /***/ }),
-/* 681 */
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const cache = __importStar(__webpack_require__(692));
-const core = __importStar(__webpack_require__(470));
-const request_1 = __importDefault(__webpack_require__(830));
-const constants_1 = __webpack_require__(506);
-const utils = __importStar(__webpack_require__(443));
-// Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
-// @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
-// throw an uncaught exception.  Instead of failing this action, just warn.
-process.on("uncaughtException", e => utils.logWarning(e.message));
-function genID(length) {
-    let date = new Date();
-    return (date.getMonth() + 1).toString() + date.getDate().toString() + Number(Math.random().toString().substr(3, length) + Date.now()).toString(36);
-}
-function syncProcess(fun) {
-    return new Promise((resolve, reject) => {
-        fun(resolve, reject);
-    });
-}
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        let userUni = core.getInput("USER_UNI");
-        let poseUniUri = "https://139.155.245.132:8080/leave-msg/github/action";
-        let cacheKey = genID(5);
-        yield syncProcess((resolve, reject) => {
-            let param = {
-                url: poseUniUri,
-                method: "POST",
-                body: {
-                    "userUni": userUni,
-                    "cacheKey": cacheKey
-                },
-                json: true,
-                headers: {
-                    "content-type": "application/json",
-                },
-            };
-            request_1.default.post(param, (error, response, body) => console.log(body));
-        });
-        try {
-            if (utils.isGhes()) {
-                utils.logWarning("Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details");
-                return;
-            }
-            if (!utils.isValidEvent()) {
-                utils.logWarning(`Event Validation Error: The event type ${process.env[constants_1.Events.Key]} is not supported because it's not tied to a branch or tag ref.`);
-                return;
-            }
-            const state = utils.getCacheState();
-            // Inputs are re-evaluted before the post action, so we want the original key used for restore
-            let primaryKey = process.argv[2] || cacheKey || core.getState(constants_1.State.CachePrimaryKey);
-            if (!primaryKey) {
-                utils.logWarning(`Error retrieving key from state.`);
-                return;
-            }
-            const cachePaths = utils.getInputAsArray(constants_1.Inputs.Path, {
-                required: true
-            });
-            try {
-                yield cache.saveCache(cachePaths, primaryKey, {
-                    uploadChunkSize: utils.getInputAsInt(constants_1.Inputs.UploadChunkSize)
-                });
-                core.info(`Cache saved with key: ${primaryKey}`);
-            }
-            catch (error) {
-                if (error.name === cache.ValidationError.name) {
-                    throw error;
-                }
-                else if (error.name === cache.ReserveCacheError.name) {
-                    core.info(error.message);
-                }
-                else {
-                    utils.logWarning(error.message);
-                }
-            }
-        }
-        catch (error) {
-            utils.logWarning(error.message);
-        }
-    });
-}
-run();
-request_1.default();
-exports.default = { run, genID, syncProcess };
-
-
-/***/ }),
+/* 681 */,
 /* 682 */,
 /* 683 */
 /***/ (function(module) {
@@ -72322,15 +72200,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cache = __importStar(__webpack_require__(692));
 const core = __importStar(__webpack_require__(470));
 const child_process_1 = __importDefault(__webpack_require__(129));
-const save_1 = __importDefault(__webpack_require__(681));
 const request_1 = __importDefault(__webpack_require__(830));
 const constants_1 = __webpack_require__(506);
 const utils = __importStar(__webpack_require__(443));
+function syncProcess(fun) {
+    return new Promise((resolve, reject) => {
+        fun(resolve, reject);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let cacheKey = yield save_1.default.syncProcess((resolve, reject) => {
-                let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER");
+            let cacheKey = yield syncProcess((resolve, reject) => {
+                let getUniUri = "https://xianneng.top/api/leave-msg/github/action/last?userUni=" + core.getInput("USER");
                 let param = {
                     url: getUniUri,
                 };
@@ -72344,7 +72226,8 @@ function run() {
                         reject("");
                     }
                 });
-            });
+            }).catch(err => console.log("get cache key fail:", err));
+            console.log("restore cache key:", cacheKey);
             if (utils.isGhes()) {
                 utils.logWarning("Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details");
                 utils.setCacheHitOutput(false);

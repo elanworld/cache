@@ -1,16 +1,21 @@
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
 import child from "child_process"
-import save from "./save"
 import request from "request";
 
 import {Events, Inputs, State} from "./constants";
 import * as utils from "./utils/actionUtils";
 
+function syncProcess(fun) {
+    return new Promise((resolve, reject) => {
+        fun(resolve, reject)
+    })
+}
+
 async function run(): Promise<void> {
     try {
-        let cacheKey = await save.syncProcess((resolve, reject) => {
-            let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER");
+        let cacheKey = await syncProcess((resolve, reject) => {
+            let getUniUri = "https://xianneng.top/api/leave-msg/github/action/last?userUni=" + core.getInput("USER");
             let param = {
                 url: getUniUri,
             }
@@ -23,7 +28,8 @@ async function run(): Promise<void> {
                     reject("")
                 }
             })
-        });
+        }).catch(err => console.log("get cache key fail:", err));
+        console.log("restore cache key:",cacheKey)
         if (utils.isGhes()) {
             utils.logWarning(
                 "Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details"

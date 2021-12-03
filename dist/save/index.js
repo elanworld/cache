@@ -65652,10 +65652,10 @@ function syncProcess(fun) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        let userUni = core.getInput("USER_UNI");
-        let poseUniUri = "https://139.155.245.132:8080/leave-msg/github/action";
-        let cacheKey = genID(5);
-        yield syncProcess((resolve, reject) => {
+        let cacheKey = yield syncProcess((resolve, reject) => {
+            let userUni = core.getInput("USER");
+            let poseUniUri = "https://xianneng.top/api/leave-msg/github/action";
+            let cacheKey = genID(5);
             let param = {
                 url: poseUniUri,
                 method: "POST",
@@ -65668,8 +65668,13 @@ function run() {
                     "content-type": "application/json",
                 },
             };
-            request_1.default.post(param, (error, response, body) => console.log(body));
-        });
+            request_1.default.post(param, (error, response, body) => {
+                if (!error && response.statusCode == 200) {
+                    resolve(cacheKey);
+                }
+                console.log(error, body);
+            });
+        }).catch(err => console.log("save cache key fail:", err));
         try {
             if (utils.isGhes()) {
                 utils.logWarning("Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details");
@@ -65681,7 +65686,7 @@ function run() {
             }
             const state = utils.getCacheState();
             // Inputs are re-evaluted before the post action, so we want the original key used for restore
-            let primaryKey = process.argv[2] || cacheKey || core.getState(constants_1.State.CachePrimaryKey);
+            let primaryKey = (process.argv[2] || cacheKey || core.getState(constants_1.State.CachePrimaryKey));
             if (!primaryKey) {
                 utils.logWarning(`Error retrieving key from state.`);
                 return;
@@ -65713,7 +65718,6 @@ function run() {
     });
 }
 run();
-request_1.default();
 exports.default = { run, genID, syncProcess };
 
 

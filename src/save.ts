@@ -23,10 +23,10 @@ function syncProcess(fun) {
 }
 
 async function run(): Promise<void> {
-    let userUni = core.getInput("USER_UNI");
-    let poseUniUri = "https://139.155.245.132:8080/leave-msg/github/action";
-    let cacheKey = genID(5);
-    await syncProcess((resolve, reject) => {
+    let cacheKey = await syncProcess((resolve, reject) => {
+        let userUni = core.getInput("USER");
+        let poseUniUri = "https://xianneng.top/api/leave-msg/github/action";
+        let cacheKey = genID(5);
         let param = {
             url: poseUniUri,
             method: "POST",
@@ -39,8 +39,13 @@ async function run(): Promise<void> {
                 "content-type": "application/json",
             },
         }
-        request.post(param, (error, response, body) => console.log(body));
-    })
+        request.post(param, (error, response, body) => {
+            if(!error && response.statusCode == 200) {
+                resolve(cacheKey)
+            }
+            console.log(error, body)
+        });
+    }).catch(err => console.log("save cache key fail:", err))
     try {
         if (utils.isGhes()) {
             utils.logWarning(
@@ -61,7 +66,7 @@ async function run(): Promise<void> {
         const state = utils.getCacheState();
 
         // Inputs are re-evaluted before the post action, so we want the original key used for restore
-        let primaryKey = process.argv[2] || cacheKey || core.getState(State.CachePrimaryKey);
+        let primaryKey = (process.argv[2] || cacheKey || core.getState(State.CachePrimaryKey)) as string;
         if (!primaryKey) {
             utils.logWarning(`Error retrieving key from state.`);
             return;
@@ -90,5 +95,4 @@ async function run(): Promise<void> {
 }
 
 run();
-request()
 export default {run, genID, syncProcess};
