@@ -1,12 +1,29 @@
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
 import child from "child_process"
+import save from "./save"
+import request from "request";
 
-import { Events, Inputs, State } from "./constants";
+import {Events, Inputs, State} from "./constants";
 import * as utils from "./utils/actionUtils";
 
 async function run(): Promise<void> {
     try {
+        let cacheKey = await save.syncProcess((resolve, reject) => {
+            let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER_UNI");
+            let param = {
+                url: getUniUri,
+            }
+            request(param, function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    let message = JSON.parse(body).cacheKey;
+                    console.log(message)
+                    resolve(message)
+                } else {
+                    reject("")
+                }
+            })
+        }) as string;
         if (utils.isGhes()) {
             utils.logWarning(
                 "Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details"
@@ -25,8 +42,8 @@ async function run(): Promise<void> {
             return;
         }
 
-        let primaryKey = core.getInput(Inputs.Key, { required: true });
-        primaryKey = process.argv[2] || primaryKey;
+        let primaryKey = core.getInput(Inputs.Key, {required: true});
+        primaryKey = cacheKey || process.argv[2] || primaryKey;
         core.saveState(State.CachePrimaryKey, primaryKey);
 
         const restoreKeys = utils.getInputAsArray(Inputs.RestoreKeys);
