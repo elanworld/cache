@@ -10,7 +10,7 @@ import * as utils from "./utils/actionUtils";
 async function run(): Promise<void> {
     try {
         let cacheKey = await save.syncProcess((resolve, reject) => {
-            let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER_UNI");
+            let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER");
             let param = {
                 url: getUniUri,
             }
@@ -23,7 +23,7 @@ async function run(): Promise<void> {
                     reject("")
                 }
             })
-        }) as string;
+        });
         if (utils.isGhes()) {
             utils.logWarning(
                 "Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details"
@@ -43,7 +43,7 @@ async function run(): Promise<void> {
         }
 
         let primaryKey = core.getInput(Inputs.Key, {required: true});
-        primaryKey = cacheKey || process.argv[2] || primaryKey;
+        primaryKey = (process.argv[2] || cacheKey || primaryKey) as string;
         core.saveState(State.CachePrimaryKey, primaryKey);
 
         const restoreKeys = utils.getInputAsArray(Inputs.RestoreKeys);

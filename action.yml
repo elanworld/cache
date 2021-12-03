@@ -2,7 +2,7 @@ name: 'Cache'
 description: 'Cache artifacts like dependencies and build outputs to improve workflow execution time'
 author: 'GitHub'
 inputs:
-  user-uni:
+  user:
     description: 'a unique user str to get saved or restored key'
     required: false
   path:

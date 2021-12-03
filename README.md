@@ -2,6 +2,10 @@
 
 This action allows caching dependencies and build outputs to improve workflow execution time.
 
+##what new:
+auto save cache by diy cache key,it will save/restore every run time in work flow.
+you can manual runing save/restore action in the github server by command what is `node path/to/action youCacheKey`
+
 <a href="https://github.com/actions/cache/actions?query=workflow%3ATests"><img alt="GitHub Actions status" src="https://github.com/actions/cache/workflows/Tests/badge.svg?branch=main&event=push"></a>
 
 ## Documentation
