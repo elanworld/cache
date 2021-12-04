@@ -21,9 +21,12 @@ async function run(): Promise<void> {
             }
             request(param, function (error, response, body) {
                 if (!error && response.statusCode == 200) {
-                    let message = JSON.parse(body).cacheKey;
-                    console.log(message)
-                    resolve(message)
+                    try {
+                        let uni = JSON.parse(body).cacheKey;
+                        resolve(uni)
+                    } catch(exception) {
+                        reject(exception)
+                    }
                 } else {
                     reject("")
                 }
