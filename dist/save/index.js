@@ -65650,12 +65650,12 @@ function syncProcess(fun) {
         fun(resolve, reject);
     });
 }
-function run() {
+function saveKey(key) {
     return __awaiter(this, void 0, void 0, function* () {
         let cacheKey = yield syncProcess((resolve, reject) => {
             let userUni = core.getInput("USER");
             let poseUniUri = "https://xianneng.top/api/leave-msg/github/action";
-            let cacheKey = genID(5);
+            let cacheKey = key || genID(5);
             let param = {
                 url: poseUniUri,
                 method: "POST",
@@ -65675,6 +65675,11 @@ function run() {
                 console.log(error, body);
             });
         }).catch(err => console.log("save cache key fail:", err));
+        return cacheKey;
+    });
+}
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
         try {
             if (utils.isGhes()) {
                 utils.logWarning("Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details");
@@ -65685,6 +65690,13 @@ function run() {
                 return;
             }
             const state = utils.getCacheState();
+            let cacheKey;
+            if (!process.argv[2]) {
+                cacheKey = yield saveKey(undefined);
+            }
+            else {
+                cacheKey = yield saveKey(process.argv[2]);
+            }
             // Inputs are re-evaluted before the post action, so we want the original key used for restore
             let primaryKey = (process.argv[2] || cacheKey || core.getState(constants_1.State.CachePrimaryKey));
             if (!primaryKey) {

