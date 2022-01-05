@@ -66030,9 +66030,6 @@ function saveCache(paths, key, options) {
         const fileSizeLimit = 5 * 1024 * 1024 * 1024; // 5GB per repo limit
         const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath);
         core.debug(`File Size: ${archiveFileSize}`);
-        if (archiveFileSize > fileSizeLimit) {
-            throw new Error(`Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`);
-        }
         core.debug(`Saving Cache (ID: ${cacheId})`);
         yield cacheHttpClient.saveCache(cacheId, archivePath, options);
         return cacheId;
