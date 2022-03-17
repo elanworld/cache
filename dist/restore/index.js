@@ -66173,7 +66173,7 @@ function saveCache(paths, key, options) {
         }
         core.debug(`Saving Cache (ID: ${cacheId})`);
         yield cacheHttpClient.saveCache(cacheId, archivePath, options);
-        return cacheId;
+        return [cacheId,Math.round(archiveFileSize / (1024 * 1024))]
     });
 }
 exports.saveCache = saveCache;
@@ -72212,7 +72212,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let cacheKey = yield syncProcess((resolve, reject) => {
-                let getUniUri = "https://xianneng.top/api/leave-msg/github/action/last?userUni=" + core.getInput("USER");
+                let getUniUri = "https://xianneng.top/api/launcher-box/github/action/last?userUni=" + core.getInput("USER");
                 let param = {
                     url: getUniUri,
                 };

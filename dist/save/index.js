@@ -65650,18 +65650,18 @@ function syncProcess(fun) {
         fun(resolve, reject);
     });
 }
-function saveKey(key) {
+function saveKey(key, size) {
     return __awaiter(this, void 0, void 0, function* () {
-        let cacheKey = yield syncProcess((resolve, reject) => {
+        yield syncProcess((resolve, reject) => {
             let userUni = core.getInput("USER");
-            let poseUniUri = "https://xianneng.top/api/leave-msg/github/action";
-            let cacheKey = key || genID(5);
+            let poseUniUri = "https://xianneng.top/api/launcher-box/github/action";
             let param = {
                 url: poseUniUri,
                 method: "POST",
                 body: {
                     "userUni": userUni,
-                    "cacheKey": cacheKey
+                    "cacheKey": key,
+                    "cacheSize": size
                 },
                 json: true,
                 headers: {
@@ -65670,12 +65670,11 @@ function saveKey(key) {
             };
             request_1.default.post(param, (error, response, body) => {
                 if (!error && response.statusCode == 200) {
-                    resolve(cacheKey);
+                    resolve(key);
                 }
                 console.log(error, body);
             });
         }).catch(err => console.log("save cache key fail:", err));
-        return cacheKey;
     });
 }
 function run() {
@@ -65689,16 +65688,9 @@ function run() {
                 utils.logWarning(`Event Validation Error: The event type ${process.env[constants_1.Events.Key]} is not supported because it's not tied to a branch or tag ref.`);
                 return;
             }
-            const state = utils.getCacheState();
-            let cacheKey;
-            if (!process.argv[2]) {
-                cacheKey = yield saveKey(undefined);
-            }
-            else {
-                cacheKey = yield saveKey(process.argv[2]);
-            }
+            let cacheKey = process.argv[2] || genID(5);
             // Inputs are re-evaluted before the post action, so we want the original key used for restore
-            let primaryKey = (process.argv[2] || cacheKey || core.getState(constants_1.State.CachePrimaryKey));
+            let primaryKey = (cacheKey || core.getState(constants_1.State.CachePrimaryKey));
             if (!primaryKey) {
                 utils.logWarning(`Error retrieving key from state.`);
                 return;
@@ -65707,10 +65699,13 @@ function run() {
                 required: true
             });
             try {
-                yield cache.saveCache(cachePaths, primaryKey, {
+                // modify package source as: return [cacheId,Math.round(archiveFileSize / (1024 * 1024))]
+                // export declare function saveCache(paths: string[], key: string, options?: UploadOptions): Promise<[number,number]>;
+                let [cacheId, cacheSize] = yield cache.saveCache(cachePaths, primaryKey, {
                     uploadChunkSize: utils.getInputAsInt(constants_1.Inputs.UploadChunkSize)
                 });
                 core.info(`Cache saved with key: ${primaryKey}`);
+                yield saveKey(primaryKey, cacheSize);
             }
             catch (error) {
                 if (error.name === cache.ValidationError.name) {
@@ -66030,9 +66025,12 @@ function saveCache(paths, key, options) {
         const fileSizeLimit = 5 * 1024 * 1024 * 1024; // 5GB per repo limit
         const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath);
         core.debug(`File Size: ${archiveFileSize}`);
+        if (archiveFileSize > fileSizeLimit) {
+            throw new Error(`Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`);
+        }
         core.debug(`Saving Cache (ID: ${cacheId})`);
         yield cacheHttpClient.saveCache(cacheId, archivePath, options);
-        return cacheId;
+        return [cacheId,Math.round(archiveFileSize / (1024 * 1024))]
     });
 }
 exports.saveCache = saveCache;

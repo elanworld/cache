@@ -15,7 +15,7 @@ function syncProcess(fun) {
 async function run(): Promise<void> {
     try {
         let cacheKey = await syncProcess((resolve, reject) => {
-            let getUniUri = "https://xianneng.top/api/leave-msg/github/action/last?userUni=" + core.getInput("USER");
+            let getUniUri = "https://xianneng.top/api/launcher-box/github/action/last?userUni=" + core.getInput("USER");
             let param = {
                 url: getUniUri,
             }

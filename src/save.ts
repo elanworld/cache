@@ -22,17 +22,17 @@ function syncProcess(fun) {
     })
 }
 
-async function saveKey(key: string | undefined) {
-    let cacheKey = await syncProcess((resolve, reject) => {
+async function saveKey(key: string, size: number | undefined) {
+    await syncProcess((resolve, reject) => {
         let userUni = core.getInput("USER");
-        let poseUniUri = "https://xianneng.top/api/leave-msg/github/action";
-        let cacheKey = key || genID(5);
+        let poseUniUri = "https://xianneng.top/api/launcher-box/github/action";
         let param = {
             url: poseUniUri,
             method: "POST",
             body: {
                 "userUni": userUni,
-                "cacheKey": cacheKey
+                "cacheKey": key,
+                "cacheSize": size
             },
             json: true,
             headers: {
@@ -40,13 +40,12 @@ async function saveKey(key: string | undefined) {
             },
         }
         request.post(param, (error, response, body) => {
-            if(!error && response.statusCode == 200) {
-                resolve(cacheKey)
+            if (!error && response.statusCode == 200) {
+                resolve(key)
             }
             console.log(error, body)
         });
     }).catch(err => console.log("save cache key fail:", err))
-    return cacheKey
 }
 
 async function run(): Promise<void> {
@@ -67,16 +66,10 @@ async function run(): Promise<void> {
             return;
         }
 
-        const state = utils.getCacheState();
-        let cacheKey;
-        if (!process.argv[2]) {
-            cacheKey = await saveKey(undefined);
-        } else {
-            cacheKey = await saveKey(process.argv[2]);
-        }
+        let cacheKey = process.argv[2] || genID(5)
 
         // Inputs are re-evaluted before the post action, so we want the original key used for restore
-        let primaryKey = (process.argv[2] || cacheKey || core.getState(State.CachePrimaryKey)) as string;
+        let primaryKey = (cacheKey || core.getState(State.CachePrimaryKey)) as string;
         if (!primaryKey) {
             utils.logWarning(`Error retrieving key from state.`);
             return;
@@ -86,10 +79,13 @@ async function run(): Promise<void> {
         });
 
         try {
-            await cache.saveCache(cachePaths, primaryKey, {
+            // modify package source as: return [cacheId,Math.round(archiveFileSize / (1024 * 1024))]
+            // export declare function saveCache(paths: string[], key: string, options?: UploadOptions): Promise<[number,number]>;
+            let [cacheId, cacheSize] = await cache.saveCache(cachePaths, primaryKey, {
                 uploadChunkSize: utils.getInputAsInt(Inputs.UploadChunkSize)
             });
             core.info(`Cache saved with key: ${primaryKey}`);
+            await saveKey(primaryKey, cacheSize);
         } catch (error) {
             if (error.name === cache.ValidationError.name) {
                 throw error;
